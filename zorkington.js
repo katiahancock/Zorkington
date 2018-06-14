@@ -13,21 +13,35 @@ let rooms = {
     },
     foyer: {
         canChangeTo: ["startRoom"], 
-        inventory: ["sevenDays"]
     }
 };
 
 let currentInput;
 
+let currentRoom = "startRoom";
+
+function changeRoom(nextRoom) {
+    let validTransitions = rooms[currentRoom].canChangeTo;
+    if (validTransitions.includes(nextRoom)) {
+        currentRoom = nextRoom;
+    } else { 
+        throw ("You cannot do that here.");
+    }
+};
+
 function startGame() {
-    console.log("182 Main St.\nYou are standing on Main Street between Church and South Winooski.\nThere is a door here. A keypad sits on the handle.\nOn the door is a handwritten sign.\nWhat do you want to do?");
+    console.log("182 Main St.\nYou are standing on Main Street between Church and South Winooski.\nThere is a door here. A keypad sits on the handle.\nTaped to the inside of the door is a handwritten sign.\nWhat do you want to do?");
     process.stdin.on('data', (chunk) => {
-    let userInput = chunk.toString().trim().toLowerCase();
-    let numArray = userInput.match;(rooms.startRoom.input.numRegEx);
-    let numBer;
-    currentInput = userInput;
-    startRoom();
-})
+        let userInput = chunk.toString().trim().toLowerCase();
+        let numArray = userInput.match;(rooms.startRoom.input.numRegEx);
+        let numBer;
+        currentInput = userInput;
+        if (currentRoom === "startRoom") {
+            startRoom();
+        } else if (currentRoom === "foyer") {
+            foyer();
+    }
+    });
 }
 
 function startRoom() {
@@ -48,7 +62,7 @@ function startRoom() {
         console.log("Bzzzzt! The door is still locked.");
     } else if (currentInput.match(rooms.startRoom.input.codeRegEx)) {
         console.log("Success! The door opens. You enter the foyer and the door shuts behind you.");
-        foyer();
+        changeRoom("foyer");
     } else if (rooms.startRoom.input.exitFunction.includes(currentInput)) {
         console.log("Awww, we're sorry to see you go. Come back soon!");
         process.exit();

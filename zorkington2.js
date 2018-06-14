@@ -37,7 +37,6 @@ function changeRoom(nextRoom) {
     let validTransitions = rooms[currentRoom].canChangeTo;
     if (validTransitions.includes(nextRoom)) {
         currentRoom = nextRoom;
-        changeStuff()
     } else { 
         throw ("You cannot do that here.");
     }
