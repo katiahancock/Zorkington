@@ -1,5 +1,5 @@
 let rooms = {
-    startRoom: {
+    mainStreet182: {
         description: "182 Main St.\nYou are standing on Main Street between Church and South Winooski.\nThere is a door here. A keypad sits on the handle.\nTaped to the inside of the door is a handwritten sign.\nWhat do you want to do?",
         canChangeTo: ["foyer"],
         actions: {
@@ -29,7 +29,7 @@ let rooms = {
     },
     foyer: {
         description: "You are in a foyer. Or maybe it's an antechamber. Or a vestibule. Or an entryway. Or an atrium. Or a narthex. But let's forget all that fancy flatlander vocabulary, and just call it a foyer. In Vermont, this is pronounced \"FO-ee-yurr\".\nA copy of Seven Days lies in a corner.\nWhat do you want to do?",
-        canChangeTo: ["startRoom"],
+        canChangeTo: ["mainStreet182"],
         actions: {
             takePaper: {
                 inputs: ["take paper", "take seven days", "open seven days", "seven days"],
@@ -38,23 +38,61 @@ let rooms = {
             goBack: {
                 inputs: ["go back", "turn around", "leave", "leave room"]
             }
-        },
-        inventory: ["Seven Days"]
+        }
     }
 };
 
-let currentInput;
+let roomInventory = {
+    mainStreet182: [],
+    foyer: ["Seven Days"],
+    stairs: ["granola"],
+    mainStreetSidewalk: ["Canadian quarter"]
+};
 
-let currentRoom = "startRoom";
-
-let inventory = {
-    "Seven Days": "foyer"
-}
+let currentInventory = ["meep morp"];
 
 let userInventory = {
-    inputs: ["check inventory", "inventory", "log inventory", "i"],
-    inventory: []
+    checkInventoryInputs: ["check inventory", "inventory", "log inventory", "i"],
+    takeItemInputs: ["take", "take item", "pick up"],
+    dropItemInputs: ["drop", "drop item"],
 };
+
+function takeItem(item) {
+    let itemIndex = roomInventory[currentRoom].indexOf(item);
+    roomInventory[currentRoom].splice(itemIndex, 1);
+    currentInventory.push(item);
+};
+
+//let itemNames = ["Seven Days", "granola", "Canadian quarter"]
+
+let currentInput;
+
+let currentRoom = "mainStreet182";
+
+function playGame() {
+    console.log(rooms[currentRoom].description);
+    process.stdin.on('data', (chunk) => {
+        //console.log("inside playGame, at the start of process.stdin.on(). current room: " + currentRoom);
+        let userInput = chunk.toString().trim().toLowerCase();
+        currentInput = userInput;
+        let words = currentInput.split(' ');
+        let action = words.shift();
+        let object = words.join(' ');
+        if (roomInventory[currentRoom].includes(object)) {
+            if (action === "take") {
+                takeItem(object);
+            }
+        } else if (userInventory.checkInventoryInputs.includes(currentInput)) {
+            console.log("You are carrying:\n" + currentInventory.join("\n"));
+        } else if (currentRoom === "mainStreet182") {
+            //Inside playGame, about to call mainStreet182().
+            mainStreet182();
+        } else if (currentRoom === "foyer") {
+            //Inside playGame, about to call foyer().
+            foyer();
+        }
+    });
+}
 
 function changeRoom(nextRoom) {
     let validTransitions = rooms[currentRoom].canChangeTo;
@@ -65,58 +103,34 @@ function changeRoom(nextRoom) {
     } else { 
         console.log("You cannot go to " + nextRoom + " from " + currentRoom + ".");
     }
-    //playGame();
 };
 
-function takeItem(item) {
-    inventory[item] = "with user";
-    userInventory.inventory.push(item);
-}
-
-function playGame() {
-    console.log(rooms[currentRoom].description);
-    process.stdin.on('data', (chunk) => {
-        console.log("inside playGame, at the start of process.stdin.on(). current room: " + currentRoom);
-        let userInput = chunk.toString().trim().toLowerCase();
-        currentInput = userInput;
-        if (userInventory.inputs.includes(currentInput)) {
-            console.log(userInventory.inventory);
-        } else if (currentRoom === "startRoom") {
-            console.log("inside playGame, about to call startRoom()");
-            startRoom();
-        } else if (currentRoom === "foyer") {
-            console.log("inside playGame, about to call foyer()");
-            foyer();
-        }
-    });
-}
-
-function startRoom() {
-    let startRoomActions = rooms.startRoom.actions;
-    let numArray = currentInput.match(startRoomActions.numRegEx);
+function mainStreet182() {
+    let mainStreet182Actions = rooms.mainStreet182.actions;
+    let numArray = currentInput.match(mainStreet182Actions.numRegEx);
     let numBer;
     if (numArray) {
         numBer = Number(numArray.join(""));
     }
-    if (startRoomActions.readSign.inputs.includes(currentInput)) {
-        console.log(startRoomActions.readSign.result);
-    } else if (startRoomActions.openDoor.inputs.includes(currentInput)) { 
-        console.log(startRoomActions.openDoor.result);
-    } else if (startRoomActions.takeSign.inputs.includes(currentInput)) {
-        console.log(startRoomActions.takeSign.result);
-    } else if (startRoomActions.lickDoor.inputs.includes(currentInput)) {
-        console.log(startRoomActions.lickDoor.result);
+    if (mainStreet182Actions.readSign.inputs.includes(currentInput)) {
+        console.log(mainStreet182Actions.readSign.result);
+    } else if (mainStreet182Actions.openDoor.inputs.includes(currentInput)) { 
+        console.log(mainStreet182Actions.openDoor.result);
+    } else if (mainStreet182Actions.takeSign.inputs.includes(currentInput)) {
+        console.log(mainStreet182Actions.takeSign.result);
+    } else if (mainStreet182Actions.lickDoor.inputs.includes(currentInput)) {
+        console.log(mainStreet182Actions.lickDoor.result);
         process.exit();
     } else if (typeof numBer === "number" && numBer !== 12345) { 
         console.log("Bzzzzt! The door is still locked.");
-    } else if (currentInput.match(startRoomActions.codeRegEx)) {
+    } else if (currentInput.match(mainStreet182Actions.codeRegEx)) {
         console.log("Success! The door opens. You enter the foyer and the door shuts behind you.");
         changeRoom("foyer");
-    } else if (startRoomActions.exitFunction.inputs.includes(currentInput)) {
-        console.log(startRoomActions.exitFunction.result);
+    } else if (mainStreet182Actions.exitFunction.inputs.includes(currentInput)) {
+        console.log(mainStreet182Actions.exitFunction.result);
         process.exit();
     } else {
-        console.log("Sorry, I don't know how to " + currentInput + ".");
+        console.log("Sorry, I don't understand " + currentInput + ".");
     }
 }
 
@@ -126,9 +140,9 @@ function foyer() {
         takeItem("Seven Days");
         console.log(foyerActions.takePaper.result);
     } else if (foyerActions.goBack.inputs.includes(currentInput)) {
-        changeRoom("startRoom");
+        changeRoom("mainStreet182");
     } else {
-        console.log("Sorry, I don't know how to " + currentInput + ".");
+        console.log("Sorry, I don't understand " + currentInput + ".");
     }
 
 }
