@@ -1,18 +1,45 @@
 let rooms = {
     startRoom: {
+        description: "182 Main St.\nYou are standing on Main Street between Church and South Winooski.\nThere is a door here. A keypad sits on the handle.\nTaped to the inside of the door is a handwritten sign.\nWhat do you want to do?",
         canChangeTo: ["foyer"],
-        input: {
-            readSign: ["read sign", "read sign!", "read sign.", "read", "read!", "read."],
-            openDoor: ["open door", "open door!", "open door.", "open", "open!", "open."],
-            takeSign: ["take sign", "take sign!", "take sign.", "take"],
-            exitFunction: ["exit", "end game", "end", "STOP THE MADNESS"],
-            lickDoor: ["lick door", "lick", "be disgusting"],
+        actions: {
+            readSign: {
+                inputs: ["read sign", "read sign!", "read sign.", "read", "read!", "read.", "view sign", "view sign"],
+                result: "The sign says \"Welcome to Burlington Code Academy! Come on up to the second floor. If the door is locked, use the code \'12345\'.\""
+            },
+            openDoor: {
+                inputs: ["open door", "open door!", "open door.", "open", "open!", "open."],
+                result: "The door is locked. There is a keypad on the door handle."
+            },
+            takeSign: {
+                inputs:["take sign", "take sign!", "take sign.", "take"],
+                result: "That would be selfish. How will other students find their way?"
+            },
+            exitFunction: {
+                inputs: ["exit", "end game", "end", "STOP THE MADNESS"],
+                result: "Awww, we're sorry to see you go. Come back soon!"
+            },
+            lickDoor: {
+                inputs: ["lick door", "lick", "be disgusting"],
+                result: "You lick the door. Nothing happens. You give up and return home... only to find days later that you have a high fever. You start convulsing, and are taken to the hospital. You spend twenty days there, racking up medical bills beyond the value of your house. You die.\nDo you want to try again?"
+            }, 
             codeRegEx: /12345/,
             numRegEx: /\d/g 
         }
     },
     foyer: {
-        canChangeTo: ["startRoom"], 
+        description: "You are in a foyer. Or maybe it's an antechamber. Or a vestibule. Or an entryway. Or an atrium. Or a narthex. But let's forget all that fancy flatlander vocabulary, and just call it a foyer. In Vermont, this is pronounced \"FO-ee-yurr\".\nA copy of Seven Days lies in a corner.\nWhat do you want to do?",
+        canChangeTo: ["startRoom"],
+        actions: {
+            takePaper: {
+                inputs: ["take paper", "take seven days", "open seven days", "seven days"],
+                result: "You pick up the paper and leaf through it looking for comics and ignoring the articles, just like everybody else does.\nYou have now added Seven Days to your inventory. Type 'inventory' at any time to see what items are in your inventory."
+            },
+            goBack: {
+                inputs: ["go back", "turn around", "leave", "leave room"]
+            }
+        },
+        inventory: ["Seven Days"]
     }
 };
 
@@ -20,62 +47,90 @@ let currentInput;
 
 let currentRoom = "startRoom";
 
+let inventory = {
+    "Seven Days": "foyer"
+}
+
+let userInventory = {
+    inputs: ["check inventory", "inventory", "log inventory", "i"],
+    inventory: []
+};
+
 function changeRoom(nextRoom) {
     let validTransitions = rooms[currentRoom].canChangeTo;
     if (validTransitions.includes(nextRoom)) {
         currentRoom = nextRoom;
+        console.log("you have moved to " + currentRoom);
+        console.log(rooms[currentRoom].description);
     } else { 
-        throw ("You cannot do that here.");
+        console.log("You cannot go to " + nextRoom + " from " + currentRoom + ".");
     }
+    //playGame();
 };
 
-function startGame() {
-    console.log("182 Main St.\nYou are standing on Main Street between Church and South Winooski.\nThere is a door here. A keypad sits on the handle.\nTaped to the inside of the door is a handwritten sign.\nWhat do you want to do?");
+function takeItem(item) {
+    inventory[item] = "with user";
+    userInventory.inventory.push(item);
+}
+
+function playGame() {
+    console.log(rooms[currentRoom].description);
     process.stdin.on('data', (chunk) => {
+        console.log("inside playGame, at the start of process.stdin.on(). current room: " + currentRoom);
         let userInput = chunk.toString().trim().toLowerCase();
-        let numArray = userInput.match;(rooms.startRoom.input.numRegEx);
-        let numBer;
         currentInput = userInput;
-        if (currentRoom === "startRoom") {
+        if (userInventory.inputs.includes(currentInput)) {
+            console.log(userInventory.inventory);
+        } else if (currentRoom === "startRoom") {
+            console.log("inside playGame, about to call startRoom()");
             startRoom();
         } else if (currentRoom === "foyer") {
+            console.log("inside playGame, about to call foyer()");
             foyer();
-    }
+        }
     });
 }
 
 function startRoom() {
-    if (rooms.startRoom.input.numArray) {
-        numBer = Number(rooms.startRoom.input.numArray.join(""));
+    let startRoomActions = rooms.startRoom.actions;
+    let numArray = currentInput.match(startRoomActions.numRegEx);
+    let numBer;
+    if (numArray) {
+        numBer = Number(numArray.join(""));
     }
-    if (rooms.startRoom.input.readSign.includes(currentInput)) {
-        console.log("The sign says \"Welcome to Burlington Code Academy! Come on up to the second floor. If the door is locked, use the code \'12345\'.\"");
-    } else if (rooms.startRoom.input.openDoor.includes(currentInput)) { 
-        console.log("The door is locked. There is a keypad on the door handle.");
-    } else if (rooms.startRoom.input.takeSign.includes(currentInput)) {
-        console.log("That would be selfish. How will other students find their way?");
-    } else if (rooms.startRoom.input.lickDoor.includes(currentInput)) {
-        console.log("You lick the door. Nothing happens. You give up and return home... only to find days later that you have a high fever. You start convulsing, and are taken to the hospital. You spend twenty days there, racking up medical bills beyond the value of your house. You die.\nDo you want to try again?");
+    if (startRoomActions.readSign.inputs.includes(currentInput)) {
+        console.log(startRoomActions.readSign.result);
+    } else if (startRoomActions.openDoor.inputs.includes(currentInput)) { 
+        console.log(startRoomActions.openDoor.result);
+    } else if (startRoomActions.takeSign.inputs.includes(currentInput)) {
+        console.log(startRoomActions.takeSign.result);
+    } else if (startRoomActions.lickDoor.inputs.includes(currentInput)) {
+        console.log(startRoomActions.lickDoor.result);
         process.exit();
-    //} else if (enterCode.includes(userInput)) {
-    } else if (typeof rooms.startRoom.input.numBer === "number" && rooms.startRoom.input.numBer !== 12345) { 
+    } else if (typeof numBer === "number" && numBer !== 12345) { 
         console.log("Bzzzzt! The door is still locked.");
-    } else if (currentInput.match(rooms.startRoom.input.codeRegEx)) {
+    } else if (currentInput.match(startRoomActions.codeRegEx)) {
         console.log("Success! The door opens. You enter the foyer and the door shuts behind you.");
         changeRoom("foyer");
-    } else if (rooms.startRoom.input.exitFunction.includes(currentInput)) {
-        console.log("Awww, we're sorry to see you go. Come back soon!");
+    } else if (startRoomActions.exitFunction.inputs.includes(currentInput)) {
+        console.log(startRoomActions.exitFunction.result);
         process.exit();
     } else {
         console.log("Sorry, I don't know how to " + currentInput + ".");
     }
 }
 
-startGame();
-
 function foyer() {
-    console.log("You are in a foyer. Or maybe it's an antechamber. Or a vestibule. Or an entryway. Or an atrium. Or a narthex. But let's forget all that fancy flatlander vocabulary, and just call it a foyer. In Vermont, this is pronounced \"FO-ee-yurr\".\nA copy of Seven Days lies in a corner.\nWhat do you want to do?")
-    // process.stdin.once('data', (chunk) => {
-    // let userInput = chunk.toString().trim().toLowerCase();
-    // console.log("zeep zorp") })
+    let foyerActions = rooms.foyer.actions;
+    if (foyerActions.takePaper.inputs.includes(currentInput)) {
+        takeItem("Seven Days");
+        console.log(foyerActions.takePaper.result);
+    } else if (foyerActions.goBack.inputs.includes(currentInput)) {
+        changeRoom("startRoom");
+    } else {
+        console.log("Sorry, I don't know how to " + currentInput + ".");
+    }
+
 }
+
+playGame();
