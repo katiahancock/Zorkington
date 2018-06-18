@@ -58,9 +58,13 @@ let userInventory = {
 };
 
 function takeItem(item) {
+    if (currentInventory.includes(item)) {
+        console.log("You already have " + item)
+    } else {
     let itemIndex = roomInventory[currentRoom].indexOf(item);
     roomInventory[currentRoom].splice(itemIndex, 1);
     currentInventory.push(item);
+    }
 };
 
 //let itemNames = ["Seven Days", "granola", "Canadian quarter"]
