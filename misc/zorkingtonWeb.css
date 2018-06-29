@@ -1,0 +1,16 @@
+body {
+    background-color: black;
+    font-family: 'Press Start 2P', cursive;
+    color: white;
+}
+
+#zorkHeader {
+    height: auto;
+    width: auto;
+    text-align: center;
+    color: white;
+    font-size: 65px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border: 1px white solid;
+}
